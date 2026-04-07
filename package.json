@@ -6,10 +6,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "npm run build && node -e \"require('fs').writeFileSync('out/.nojekyll','')\"",
+    "deploy": "gh-pages -d out --dotfiles"
   },
   "dependencies": {
     "file-saver": "^2.0.5",
