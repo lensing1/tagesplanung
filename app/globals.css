@@ -56,16 +56,16 @@ body {
   border-radius: .3em;
   color: black;
   font-size: 1.5em;
-  margin-top: .2em;
   height: 2.3em;
 }
 
 .draggableItem {
+  margin-top: .3em;
   cursor: move;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dragging {
-  opacity: 0.5;
-  transform: scale(0.98);
+  opacity: 0.3;
+  transform: scale(0.95);
 }

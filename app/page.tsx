@@ -240,17 +240,56 @@ export default function FerienlagerPlanung() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
+  const dragPreviewRef = useRef<HTMLDivElement | null>(null);
+
   const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
     index: number,
     block?: BlockKey,
     isFullDay = false
     ) => {
     setDragData({ index, block, isFullDay });
     setDraggingId(isFullDay ? `day-${index}` : `block-${index}-${block}`);
+
+    const preview = document.createElement("div");
+    preview.style.position = "fixed";
+    preview.style.top = "0";
+    preview.style.left = "0";
+    preview.style.transform = "translate(-9999px, -9999px)";
+    preview.style.pointerEvents = "none";
+    preview.style.zIndex = "9999";
+    preview.style.opacity = "1";
+    preview.style.background = "white";
+    preview.style.color = "black";
+    preview.style.padding = "0.5rem 0.75rem";
+    preview.style.borderRadius = "8px";
+    preview.style.boxShadow = "0 8px 20px rgba(0,0,0,0.25)";
+    preview.style.fontSize = fontSize;
+    preview.style.fontWeight = "bold";
+
+    if (isFullDay) {
+        preview.textContent = days[index].date;
+    } else if (block) {
+        preview.style.background = getBlockColor(block, "ff");
+        preview.style.border = "1px solid " + getBlockColor(block, "ff");
+        preview.textContent = days[index][block] || blockLabels[block];
+    }
+
+    document.body.appendChild(preview);
+    dragPreviewRef.current = preview;
+
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setDragImage(preview, 20, 20);
+
   };
 
   const handleDragEnd = () => {
     setDraggingId(null);
+
+    if (dragPreviewRef.current) {
+        document.body.removeChild(dragPreviewRef.current);
+        dragPreviewRef.current = null;
+    }
   };
 
   const handleDrop = (targetIndex: number, targetBlock?: BlockKey) => {
@@ -626,7 +665,7 @@ export default function FerienlagerPlanung() {
           >
             <div
               draggable
-              onDragStart={() => handleDragStart(dayIndex, undefined, true)}
+              onDragStart={(e) => handleDragStart(e, dayIndex, undefined, true)}
               style={{ fontWeight: "bold", textAlign: "center", fontSize, cursor: "move"}}
               onDragEnd={handleDragEnd}
               className={
@@ -640,7 +679,7 @@ export default function FerienlagerPlanung() {
               <div
                 key={block}
                 draggable
-                onDragStart={() => handleDragStart(dayIndex, block as BlockKey)}
+                onDragStart={(e) => handleDragStart(e, dayIndex, block as BlockKey)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(dayIndex, block as BlockKey)}
