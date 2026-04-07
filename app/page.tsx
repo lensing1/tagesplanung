@@ -153,6 +153,7 @@ export default function FerienlagerPlanung() {
   const [dragData, setDragData] = useState<DragData | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [hoverTargetId, setHoverTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem("ferienSettings");
@@ -285,6 +286,7 @@ export default function FerienlagerPlanung() {
 
   const handleDragEnd = () => {
     setDraggingId(null);
+    setHoverTargetId(null);
 
     if (dragPreviewRef.current) {
         document.body.removeChild(dragPreviewRef.current);
@@ -327,6 +329,7 @@ export default function FerienlagerPlanung() {
     setDays(updatedDays);
     setDragData(null);
     setDraggingId(null);
+    setHoverTargetId(null);
   };
 
   const handleInputChange = (dayIndex: number, block: BlockKey, value: string) => {
@@ -651,8 +654,24 @@ export default function FerienlagerPlanung() {
         {days.map((day, dayIndex) => (
           <div
             key={dayIndex}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => handleDrop(dayIndex)}
+            onDragOver={(e) => {
+                if (!dragData?.isFullDay) return;
+                e.preventDefault();
+                setHoverTargetId(`day-${dayIndex}`);
+            }}
+            onDrop={(e) => {
+                if (!dragData?.isFullDay) return;
+                e.preventDefault();
+                handleDrop(dayIndex);
+            }}
+            className={[
+                "dayCard",
+                dragData?.isFullDay ? "dayDragMode" : "",
+                draggingId === `day-${dayIndex}` ? "dayDragging" : "",
+                dragData?.isFullDay && hoverTargetId === `day-${dayIndex}` ? "dropTargetHover" : "",
+            ]
+                .filter(Boolean)
+                .join(" ")}
             style={{
               background: "white",
               borderRadius: "1rem",
@@ -681,12 +700,24 @@ export default function FerienlagerPlanung() {
                 draggable
                 onDragStart={(e) => handleDragStart(e, dayIndex, block as BlockKey)}
                 onDragEnd={handleDragEnd}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(dayIndex, block as BlockKey)}
-                className={
-                    draggingId === `block-${dayIndex}-${block}`
-                    ? "draggableItem dragging"
-                    : "draggableItem"
+                onDragOver={(e) => {
+                if (dragData?.isFullDay || !dragData?.block) return;
+                e.preventDefault();
+                e.stopPropagation();
+                setHoverTargetId(`block-${dayIndex}-${block}`);
+                }}
+                onDrop={(e) => {
+                if (dragData?.isFullDay || !dragData?.block) return;
+                e.preventDefault();
+                e.stopPropagation();
+                handleDrop(dayIndex, block as BlockKey);
+                }}
+                className={[
+                    "draggableItem",
+                    draggingId === `block-${dayIndex}-${block}` ? "dragging" : "",
+                ]
+                    .filter(Boolean)
+                    .join(" ")
                 }
                 style={{ position: "relative", display: "flex", flexDirection: "column" }}
               >
@@ -698,11 +729,17 @@ export default function FerienlagerPlanung() {
                     handleInputChange(dayIndex, block as BlockKey, e.target.value)
                   }
                   onKeyDown={(e) => handleKeyDown(e, dayIndex, block as BlockKey)}
+                  className={[
+                    "draggable-input",
+                    hoverTargetId === `block-${dayIndex}-${block}` ? "dropTargetHover" : "",
+                    ]
+                    .filter(Boolean)
+                    .join(" ")
+                  }
                   style={{
                     backgroundColor: getBlockColor(block, "af"),
                     border: "solid " + getBlockColor(block, "ff"),
                   }}
-                  className="draggable-input"
                 />
 
                 <div

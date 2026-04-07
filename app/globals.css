@@ -67,5 +67,42 @@ body {
 
 .dragging {
   opacity: 0.3;
-  transform: scale(0.95);
+  transform: scale(0.97);
+}
+
+.dropTargetHover {
+  box-shadow: 0 0 0 3px orange inset;
+}
+
+.draggable-input {
+  padding: 0.3rem;
+  border-radius: 0.3em;
+  color: black;
+  font-size: 1.5em;
+  margin-top: 0.2em;
+  height: 1.7em;
+}
+
+.draggable-input.dropTargetHover {
+  box-shadow: 0 0 0 3px orange inset;
+}
+
+.dayCard {
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dayDragging {
+  opacity: 1 !important;
+  transform: scale(0.97);
+  box-shadow: 0 0 0 4px #4b85a3, 0 10px 24px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+  position: relative;
+}
+
+.dayDragMode {
+  opacity: 0.75;
+}
+
+.dayDragMode.dropTargetHover {
+  opacity: 1;
 }
