@@ -28,3 +28,44 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.btn:hover {
+  background-color: #dcdcdc;
+  border-color: #ccc;
+}
+
+.btn {
+  color: black;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .3em;
+}
+
+.header-elem {
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-weight: bold;
+  color: black;
+}
+
+.draggable-input {
+  padding: 0.3rem;
+  border-radius: .3em;
+  color: black;
+  font-size: 1.5em;
+  margin-top: .2em;
+  height: 2.3em;
+}
+
+.draggableItem {
+  cursor: move;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}

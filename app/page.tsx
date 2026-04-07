@@ -152,6 +152,7 @@ export default function FerienlagerPlanung() {
   );
   const [dragData, setDragData] = useState<DragData | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem("ferienSettings");
@@ -239,8 +240,17 @@ export default function FerienlagerPlanung() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
-  const handleDragStart = (index: number, block?: BlockKey, isFullDay = false) => {
+  const handleDragStart = (
+    index: number,
+    block?: BlockKey,
+    isFullDay = false
+    ) => {
     setDragData({ index, block, isFullDay });
+    setDraggingId(isFullDay ? `day-${index}` : `block-${index}-${block}`);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
   };
 
   const handleDrop = (targetIndex: number, targetBlock?: BlockKey) => {
@@ -277,6 +287,7 @@ export default function FerienlagerPlanung() {
 
     setDays(updatedDays);
     setDragData(null);
+    setDraggingId(null);
   };
 
   const handleInputChange = (dayIndex: number, block: BlockKey, value: string) => {
@@ -541,19 +552,12 @@ export default function FerienlagerPlanung() {
         }}
       >
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          <button
+          <a
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: ".3em",
-            }}
+            className="btn"
           >
             open <TiFolderOpen />
-          </button>
+          </a>
 
           <input
             type="file"
@@ -563,33 +567,19 @@ export default function FerienlagerPlanung() {
             onChange={importFromExcel}
           />
 
-          <button
+          <a
             onClick={exportToExcel}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: ".3em",
-            }}
+            className="btn"
           >
             save <IoMdDownload />
-          </button>
+          </a>
 
-          <button
+          <a
             onClick={() => setSettingsOpen(true)}
-            style={{
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: ".3em",
-            }}
+            className="btn"
           >
             settings <IoMdSettings />
-          </button>
+          </a>
         </div>
 
         <div
@@ -609,11 +599,8 @@ export default function FerienlagerPlanung() {
               key={block}
               style={{
                 background: getBlockColor(block),
-                borderRadius: "8px",
-                padding: "0.5rem",
-                fontWeight: "bold",
-                color: "black",
               }}
+              className="header-elem"
             >
               {blockLabels[block as BlockKey]}
             </div>
@@ -640,7 +627,11 @@ export default function FerienlagerPlanung() {
             <div
               draggable
               onDragStart={() => handleDragStart(dayIndex, undefined, true)}
-              style={{ fontWeight: "bold", textAlign: "center", fontSize, cursor: "move" }}
+              style={{ fontWeight: "bold", textAlign: "center", fontSize, cursor: "move"}}
+              onDragEnd={handleDragEnd}
+              className={
+                draggingId === `day-${dayIndex}` ? "draggableItem dragging" : "draggableItem"
+              }
             >
               {day.date}
             </div>
@@ -650,8 +641,14 @@ export default function FerienlagerPlanung() {
                 key={block}
                 draggable
                 onDragStart={() => handleDragStart(dayIndex, block as BlockKey)}
+                onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(dayIndex, block as BlockKey)}
+                className={
+                    draggingId === `block-${dayIndex}-${block}`
+                    ? "draggableItem dragging"
+                    : "draggableItem"
+                }
                 style={{ position: "relative", display: "flex", flexDirection: "column" }}
               >
                 <input
@@ -663,15 +660,10 @@ export default function FerienlagerPlanung() {
                   }
                   onKeyDown={(e) => handleKeyDown(e, dayIndex, block as BlockKey)}
                   style={{
-                    padding: "0.3rem",
-                    borderRadius: ".3em",
-                    color: "black",
-                    fontSize,
                     backgroundColor: getBlockColor(block, "af"),
                     border: "solid " + getBlockColor(block, "ff"),
-                    marginTop: ".2em",
-                    height: "1.7em",
                   }}
+                  className="draggable-input"
                 />
 
                 <div
